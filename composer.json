@@ -1,0 +1,19 @@
+{
+    "name": "karlos3098/laravel-primevue-table-service",
+    "description": "The Service that facilitates integration with PrimeVue tables by introducing easy pagination, filtering and sorting.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Karlos3098\\LaravelPrimevueTableService\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "karlos1998",
+            "email": "fadeusz98@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
