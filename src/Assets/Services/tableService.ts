@@ -92,10 +92,9 @@ export class TableService<DataType> {
 
     //todo = matchMode: 'startsWith' | 'contains' | 'notContains' | 'endsWith' | 'equals' | 'notEquals' | 'in' | 'lt' | 'lte' | 'gt' | 'gte' | 'between' | 'dateIs' | 'dateIsNot' | 'dateBefore' | 'dateAfter' | string | undefined;
 
-    page: number = 1;
-    perPage: number = 1;
+    // perPage: number = 1;
 
-    filters: DataTableFilterMeta = {};
+    // filters: DataTableFilterMeta = {};
 
     sort: SortData = {
         field: 'id',
@@ -168,10 +167,11 @@ export class TableService<DataType> {
      * @param data
      */
     changePage(data: DataTablePageEvent) {
-        this.page = data.page + 1;
-        this.perPage = data.rows;
+        this.meta.current_page = data.page + 1;
+        this.meta.per_page = data.rows;
 
         console.log('changePage', data)
+        console.log('filters in changePage', this.tableData.activeFilters)
 
         this.reload();
     }
@@ -184,9 +184,9 @@ export class TableService<DataType> {
             data: {
                 tables: {
                     [ this.tableData.propName ]: {
-                        page: this.page,
-                        perPage: this.perPage,
-                        filters: JSON.stringify(this.filters),
+                        page: this.meta.current_page,
+                        perPage: this.meta.per_page,
+                        filters: JSON.stringify(this.tableData.activeFilters),
                         sortOrder: this.sort.order,
                         sortField: this.sort.field,
                         // hasActiveFilters: Object.values(this.filters). //todo
@@ -236,7 +236,7 @@ export class TableService<DataType> {
     public filter(data : DataTableFilterEvent) {
         console.log('filter -> ', data.filters)
 
-        this.filters = data.filters;
+        this.tableData.activeFilters = data.filters;
         this.reload();
     }
 
@@ -245,6 +245,7 @@ export class TableService<DataType> {
     public filterForFieldExist = (filedName: string): boolean => filedName in this.tableData.columns;
 
     private defineFilters(dataFilters: any, activeFilters: DataTableFilterMeta) {
+
         this.tableModelFilters = {
             global: { value: null, matchMode: FilterMatchMode.CONTAINS },
             // contact: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
