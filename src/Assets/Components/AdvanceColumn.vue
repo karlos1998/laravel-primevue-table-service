@@ -42,7 +42,7 @@ const hasBodySlot = computed(() => !!slots.body);
         <!-- Body -->
         <template #body="data">
             <slot v-if="hasBodySlot" name="body" v-bind="data" />
-            <span v-else>{{data.data[data.field]}}</span>
+            <template v-else>{{data.data[data.field]}}</template>
         </template>
 
 
