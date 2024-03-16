@@ -6,7 +6,7 @@
     "version": "0.0.3",
     "autoload": {
         "psr-4": {
-            "Karlos3098\\LaravelPrimevueTableService\\": "."
+            "Karlos3098\\LaravelPrimevueTableService\\": "./src"
         }
     },
     "authors": [

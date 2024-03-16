@@ -14,7 +14,7 @@ use Karlos3098\LaravelPrimevueTableService\Enum\MatchMode;
 use Karlos3098\LaravelPrimevueTableService\Enum\TableColumnDataType;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableBaseColumn;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableCalendarColumn;
-
+use \Exception;
 abstract class BaseService
 {
     /**
