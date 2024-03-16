@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import TableColumnFilter from "./TableColumnFilter.vue";
-import {computed, inject} from "vue";
+import {computed, inject, useSlots} from "vue";
 import TableService from "../Services/tableService";
 import {data} from "autoprefixer";
 
@@ -18,6 +18,9 @@ const filterExist = computed(() => service.filterForFieldExist(props.field || ''
 const dataType = computed(() => filterExist.value && props.field ? service.getFilterByName(props.field || '').columnDataType : '')
 
 const isSortable = computed(() => filterExist.value && props.field ? service.getFilterByName(props.field || '').sortable : false)
+
+const slots = useSlots();
+const hasBodySlot = computed(() => !!slots.body);
 
 </script>
 
@@ -38,7 +41,8 @@ const isSortable = computed(() => filterExist.value && props.field ? service.get
 
         <!-- Body -->
         <template #body="data">
-            <slot name="body" v-bind="data" />
+            <slot v-if="hasBodySlot" name="body" v-bind="data" />
+            <span v-else>{{data.data[data.field]}}</span>
         </template>
 
 
