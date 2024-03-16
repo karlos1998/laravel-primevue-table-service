@@ -74,9 +74,19 @@ class TableService
 
     public function getRowsPerPage(): int
     {
-        $fromQuery = (int) request('tables.'.$this->getPropName().'.perPage');
+        $fromQuery = (int) request($this->getRowsPerPageParameterName());
 
         return in_array($fromQuery, $this->rowsPerPage) ? $fromQuery : $this->rowsPerPage[0];
+    }
+
+    public function getRowsPerPageParameterName(): string
+    {
+        return 'tables.'.$this->getPropName().'.perPage';
+    }
+
+    public function getPageParameterName(): string
+    {
+        return 'tables.'.$this->getPropName().'.page';
     }
 
     public function getPropName(): string

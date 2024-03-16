@@ -29,16 +29,17 @@ abstract class BaseService
 
     /**
      * @param string $resourceFileName
-     * @param Builder|Model|HasMany $builder
+     * @param Builder|Model|HasMany|MorphToMany $builder
      * @param TableService $table
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      * @throws Exception
      */
     protected function fetchData(
         string                $resourceFileName,
         Builder|Model|HasMany|MorphToMany $builder,
         TableService          $table = new TableService(),
-    ): \Illuminate\Http\Resources\Json\AnonymousResourceCollection {
+    ): AnonymousResourceCollection
+    {
         $this->table = $table;
 
         /**
@@ -55,11 +56,9 @@ abstract class BaseService
 
         $this->sortable();
 
-        //        dd(json_decode());
-
         $collection = $this->builder
             ->orderBy('created_at', 'desc')
-            ->paginate(perPage: $this->table->getRowsPerPage(), pageName: 'tables.'.$this->table->getRowsPerPage().'.page');
+            ->paginate(perPage: $this->table->getRowsPerPage(), pageName: $this->table->getPageParameterName());
 
         /**
          * @var AnonymousResourceCollection $resource
