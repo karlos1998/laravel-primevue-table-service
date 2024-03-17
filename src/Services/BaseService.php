@@ -76,7 +76,7 @@ abstract class BaseService
     private function filterable(): void
     {
         $filtersString = request('tables.'.$this->table->getPropName().'.filters');
-        $filters = json_decode($filtersString) ?? (object) [];
+        $filters = (object) json_decode($filtersString) ?? new \stdClass();
 
         $this->table->setActiveFilters($filters);
 
