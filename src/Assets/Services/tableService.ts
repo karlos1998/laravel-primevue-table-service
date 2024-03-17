@@ -288,7 +288,7 @@ export class TableService<DataType> {
     public getRowsPerPageOptions = (): number[] => this.tableData.rowsPerPage;
 
     public sortEvent = (data: DataTableSortEvent) => {
-        this.filters = data.filters;
+        //todo : data.filters - exists :D
         this.sort = {
             field: data.sortField as string,
             order: (typeof data.sortOrder == 'number' && data.sortOrder > 0) ? 'ASC' : 'DESC'
