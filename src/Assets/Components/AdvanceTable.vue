@@ -1,15 +1,25 @@
 <script setup lang="ts">
-import {inject, onBeforeMount, onBeforeUnmount, onMounted, onUpdated, provide, reactive, Ref, ref, useSlots} from 'vue';
+import {
+    computed,
+    provide, ref,
+} from 'vue';
 import TableService from "../Services/tableService.js";
 import {DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent} from "primevue/datatable";
+import EmailConfigurationResource from "@/Resources/EmailConfigurationResource";
 
-const { service } = defineProps<{
+const props = withDefaults(defineProps<{
     service: TableService<any>,
-}>()
+    propName: string,
+}>(), {
+    service: undefined,
+    propName: undefined,
+})
 
 const selection = defineModel('selection');
 
-provide('service', service)
+const service = computed(() => props.propName ? TableService.create<EmailConfigurationResource>().loadByPropName(props.propName) : props.service);
+
+provide('service', service.value)
 
 </script>
 
@@ -36,7 +46,15 @@ provide('service', service)
     >
 
         <template #header>
-            <slot name="header"></slot>
+            <slot name="header" v-bind:globalFilterValue="service.globalFilterValue" v-bind:globalFilterUpdated="service.globalFilterUpdated"></slot>
+        </template>
+
+        <template #empty>
+            <slot name="empty"></slot>
+        </template>
+
+        <template #loading>
+            <slot name="loading"></slot>
         </template>
 
         <slot />

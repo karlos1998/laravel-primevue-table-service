@@ -15,8 +15,11 @@ class TableService
 
     public \stdClass $activeFilters;
 
+    public string $globalFilter;
+
     public function __construct(
         public readonly array $columns = [],
+        public readonly array $globalFilterColumns = [],
         public readonly array $rowsPerPage = [30, 50, 100],
         public readonly string $propName = 'default',
     ) {
@@ -98,5 +101,10 @@ class TableService
     {
         $this->sortField = $field;
         $this->sortOrder = $order;
+    }
+
+    public function setGlobalFilter(string $value): void
+    {
+        $this->globalFilter = $value;
     }
 }

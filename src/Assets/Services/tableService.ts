@@ -1,5 +1,5 @@
 import {router, usePage} from "@inertiajs/vue3";
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {TableComponentType} from "../Enums/TableComponentType";
 import {ColumnDataType} from "../Enums/ColumnDataType";
@@ -51,6 +51,7 @@ export interface TableData {
     propName: string,
     sortOrder: 'ASC' | 'DESC',
     sortField: string,
+    globalFilter: string,
 }
 
 export interface SortData {
@@ -86,7 +87,10 @@ export class TableService<DataType> {
         propName: 'defualt',
         sortOrder: 'ASC',
         sortField: 'id',
+        globalFilter: '',
     };
+
+    globalFilterValue: string = ''
 
     tableModelFilters: DataTableFilterMeta = {}
 
@@ -100,6 +104,8 @@ export class TableService<DataType> {
         field: 'id',
         order: 'ASC',
     }
+
+    globalFilter: string = ''
 
     constructor() {
         this.propName = '';
@@ -140,6 +146,7 @@ export class TableService<DataType> {
             this.tableData = response.tableData
             this.defineFilters(this.tableData.columns, this.tableData.activeFilters)
             this.loadSort(this.tableData);
+            this.globalFilterValue = response.tableData.globalFilter;
         }
 
         this.data = response.data
@@ -154,6 +161,12 @@ export class TableService<DataType> {
 
     loadByPropName(propName: string) {
         const data = usePage().props[propName] as Response<DataType>;
+        watch(usePage(), (newUsePage) => {
+            console.log('use page watch', newUsePage.props)
+            if(newUsePage.props[propName]) {
+                this.loadData(newUsePage.props[propName] as Response<DataType>)
+            }
+        })
         return this
             .setPropName(propName)
             .loadData(data);
@@ -186,6 +199,7 @@ export class TableService<DataType> {
                     [ this.tableData.propName ]: {
                         page: this.meta.current_page,
                         perPage: this.meta.per_page,
+                        globalFilter: this.globalFilter ?? undefined,
                         filters: JSON.stringify(this.tableData.activeFilters),
                         sortOrder: this.sort.order,
                         sortField: this.sort.field,
@@ -304,6 +318,21 @@ export class TableService<DataType> {
         console.log('sort loaded', this.sort);
     }
 
+    public globalFilterUpdated = debounce( (data: string) => {
+        this.globalFilter = data;
+        this.reload();
+    }, 500)
+
+}
+
+const debounce = (func: Function, timeout: number = 300) => {
+    let timer = 0;
+    return (...args: any[]) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            func.apply(this, args);
+        }, timeout);
+    };
 }
 
 export default TableService;

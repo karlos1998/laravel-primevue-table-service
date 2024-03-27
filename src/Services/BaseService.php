@@ -75,6 +75,13 @@ abstract class BaseService
      */
     private function filterable(): void
     {
+        $globalFilter = request('tables.'.$this->table->getPropName().'.globalFilter');
+        if(strlen($globalFilter) > 0) {
+            $this->runGlobalFilter($globalFilter);
+            $this->table->setGlobalFilter($globalFilter);
+            //todo - obsluga globalnego filtra
+        }
+
         $filtersString = request('tables.'.$this->table->getPropName().'.filters');
         $filters = (object) json_decode($filtersString) ?? new \stdClass();
 
@@ -329,5 +336,14 @@ abstract class BaseService
         $this->builder->orderBy($sortPath, $order);
 
         $this->table->setSortData($field, $order);
+    }
+
+    private function runGlobalFilter(string $value)
+    {
+        $this->builder->where(function($query) use ($value) {
+            foreach ($this->table->globalFilterColumns as $column) {
+                $query->orWhere($column, 'LIKE', "%$value%");
+            }
+        });
     }
 }
