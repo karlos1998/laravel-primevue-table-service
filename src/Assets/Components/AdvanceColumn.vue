@@ -3,11 +3,11 @@
 import TableColumnFilter from "./TableColumnFilter.vue";
 import {computed, inject, useSlots} from "vue";
 import TableService from "../Services/tableService";
-import {data} from "autoprefixer";
 
 const props = defineProps<{
-
     field?: string,
+    header?: string,
+
     selectionMode?: 'single' | 'multiple' | undefined,
 }>()
 
@@ -32,6 +32,7 @@ const hasBodySlot = computed(() => !!slots.body);
         :selection-mode="selectionMode"
         :data-type="dataType"
         :sortable="isSortable"
+        :header="header"
     >
         <!-- Header -->
         <template #header="data">
