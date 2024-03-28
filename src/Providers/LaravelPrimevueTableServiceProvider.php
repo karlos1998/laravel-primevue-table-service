@@ -20,7 +20,7 @@ class LaravelPrimevueTableServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->publishes([
-            __DIR__.'/../Assets' => resource_path('js'),
+            __DIR__.'/../Assets' => resource_path('js/karlos3098-LaravelPrimevueTable'),
         ], 'public');
     }
 }

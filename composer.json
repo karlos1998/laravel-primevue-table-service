@@ -20,7 +20,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Karlos3098\\LaravelPrimevueTableService\\Providers\\PrimeVueTableServiceProvider"
+                "Karlos3098\\LaravelPrimevueTableService\\Providers\\LaravelPrimevueTableServiceProvider"
             ]
         }
     }
