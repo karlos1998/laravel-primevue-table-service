@@ -12,9 +12,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Karlos3098\LaravelPrimevueTableService\Enum\FilterOperator;
 use Karlos3098\LaravelPrimevueTableService\Enum\MatchMode;
 use Karlos3098\LaravelPrimevueTableService\Enum\TableColumnDataType;
+use Karlos3098\LaravelPrimevueTableService\Enum\TableComponentType;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableBaseColumn;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableCalendarColumn;
 use \Exception;
+use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableDropdownColumn;
+use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableDropdownOptions\TableDropdownOption;
+
 abstract class BaseService
 {
     /**
@@ -87,6 +91,8 @@ abstract class BaseService
 
         $this->table->setActiveFilters($filters);
 
+//        dd($filters);
+
         foreach ($filters as $columnName => $filter) {
             if (property_exists($filter, 'constraints')) {
                 $operator = FilterOperator::tryFrom($filter->operator);
@@ -137,6 +143,22 @@ abstract class BaseService
         $value = $rule->value;
 
         $matchMode = MatchMode::tryFrom($rule->matchMode);
+
+        if($column->tableComponentType === TableComponentType::DROPDOWN) {
+            /**
+             * @var TableDropdownColumn $dropdownColumn
+             */
+            $dropdownColumn = $column;
+            /**
+             * @var TableDropdownOption $option
+             */
+            $option = $dropdownColumn->findOption($value);
+            if($option) {
+             $tableDropdownOptionQuery = $option->getQuery();
+             $tableDropdownOptionQuery($query);
+            }
+            return;
+        }
 
         if (count($queryPaths) > 0) {
             $query->where(function ($query) use ($column, $queryPaths, $value, $rule, $matchMode) {

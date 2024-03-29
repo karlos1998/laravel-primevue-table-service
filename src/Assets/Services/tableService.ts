@@ -1,5 +1,5 @@
 import {router, usePage} from "@inertiajs/vue3";
-import {ref, watch} from "vue";
+import {ref, toRaw, watch} from "vue";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {TableComponentType} from "../Enums/TableComponentType";
 import {ColumnDataType} from "../Enums/ColumnDataType";
@@ -9,7 +9,6 @@ import {
     DataTableFilterMetaData, DataTableOperatorFilterMetaData,
     DataTablePageEvent, DataTableSortEvent
 } from "primevue/datatable";
-import {format} from "date-fns";
 
 export interface Response<T> {
     data: T[];
@@ -40,6 +39,10 @@ export interface FilterableColumn {
 
     sortable: boolean,
 
+    options: Array<{
+        label: string,
+    }>,
+
 }
 
 export interface TableData {
@@ -58,6 +61,8 @@ export interface SortData {
     field: string;
     order: 'ASC' | 'DESC'
 }
+
+export type FilterDisplayType = 'row' | 'menu';
 
 export class TableService<DataType> {
 
@@ -107,15 +112,18 @@ export class TableService<DataType> {
 
     globalFilter: string = ''
 
-    constructor() {
+    filterDisplay: FilterDisplayType = 'menu';
+
+    constructor(filterDisplay: FilterDisplayType) {
         this.propName = '';
+        this.filterDisplay = filterDisplay;
     }
 
     /**
      * Utworzenie instancji
      * @returns {TableService}
      */
-    static create = <DataType>(): TableService<DataType> => new this<DataType>()
+    static create = <DataType>(filterDisplay: FilterDisplayType = 'menu'): TableService<DataType> => new this<DataType>(filterDisplay)
 
 
     /************ Metoda 1 **********************/
@@ -160,13 +168,13 @@ export class TableService<DataType> {
     /************ Metoda 2 (skrocona :D) **********************/
 
     loadByPropName(propName: string) {
-        const data = usePage().props[propName] as Response<DataType>;
-        watch(usePage(), (newUsePage) => {
-            console.log('use page watch', newUsePage.props)
-            if(newUsePage.props[propName]) {
-                this.loadData(newUsePage.props[propName] as Response<DataType>)
-            }
-        })
+        const data =  structuredClone(toRaw(usePage().props[propName])) as Response<DataType>;
+        // watch(usePage(), (newUsePage) => {
+        //     console.log(usePage(), 'usePage()')
+        //     if(newUsePage.props[propName]) {
+        //         this.loadData(newUsePage.props[propName] as Response<DataType>)
+        //     }
+        // })
         return this
             .setPropName(propName)
             .loadData(data);
@@ -192,25 +200,48 @@ export class TableService<DataType> {
     private reload() {
         this.loading.value = true;
 
-        router.reload({
-            only: [ this.propName ],
-            data: {
-                tables: {
-                    [ this.tableData.propName ]: {
-                        page: this.meta.current_page,
-                        perPage: this.meta.per_page,
-                        globalFilter: this.globalFilter ?? undefined,
-                        filters: JSON.stringify(this.tableData.activeFilters),
-                        sortOrder: this.sort.order,
-                        sortField: this.sort.field,
-                        // hasActiveFilters: Object.values(this.filters). //todo
+
+        // router.get(window.location.pathname, {
+        //     tables: {
+        //         [ this.tableData.propName ]: {
+        //             page: this.meta.current_page,
+        //             perPage: this.meta.per_page,
+        //             globalFilter: this.globalFilter ?? undefined,
+        //             filters: JSON.stringify(this.tableData.activeFilters),
+        //             sortOrder: this.sort.order,
+        //             sortField: this.sort.field,
+        //             // hasActiveFilters: Object.values(this.filters). //todo
+        //         }
+        //     }
+        // }, {
+        //     only: [ this.propName ]
+        // })
+        // return;
+
+        try {
+            router.reload({
+                only: [this.propName],
+                data: {
+                    tables: {
+                        [this.tableData.propName]: {
+                            page: this.meta.current_page,
+                            perPage: this.meta.per_page,
+                            globalFilter: this.globalFilter ?? undefined,
+                            filters: JSON.stringify(this.tableData.activeFilters),
+                            sortOrder: this.sort.order,
+                            sortField: this.sort.field,
+                            // hasActiveFilters: Object.values(this.filters). //todo
+                        }
                     }
+                },
+                onSuccess: () => {
+                    this.loading.value = false
                 }
-            },
-            onSuccess: () => {
-                this.loading.value = false
-            }
-        })
+            })
+        } catch (e) {
+            console.warn('router reload fail --> ', e)
+        }
+        console.log('after reload log')
     }
 
     /**
@@ -251,6 +282,7 @@ export class TableService<DataType> {
         console.log('filter -> ', data.filters)
 
         this.tableData.activeFilters = data.filters;
+        // this.tableData.activeFilters = { ...data.filters };
         this.reload();
     }
 
@@ -261,7 +293,7 @@ export class TableService<DataType> {
     private defineFilters(dataFilters: any, activeFilters: DataTableFilterMeta) {
 
         this.tableModelFilters = {
-            global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            // global: { value: null, matchMode: FilterMatchMode.CONTAINS },
             // contact: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
             // text: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }, { value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
             // date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
@@ -296,6 +328,8 @@ export class TableService<DataType> {
                 }
             })(dataFilters[key])
         }
+
+        console.log('this.tableModelFilters', this.tableModelFilters)
 
     }
 

@@ -1,15 +1,22 @@
 <script setup lang="ts">
 
 import TableColumnFilter from "./TableColumnFilter.vue";
-import {computed, inject, useSlots} from "vue";
+import {computed, inject, onBeforeUnmount, onMounted, useSlots} from "vue";
 import TableService from "../Services/tableService";
+import {TableComponentType, tableComponentTypeEqualsTo} from "../Enums/TableComponentType";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     field?: string,
     header?: string,
 
+    showFilterMatchMode?: boolean,
+    showFilterOperator?: boolean,
+
     selectionMode?: 'single' | 'multiple' | undefined,
-}>()
+}>(), {
+    showFilterMatchMode: true,
+    showFilterOperator: true,
+})
 
 const service = inject('service') as TableService<any>
 
@@ -22,6 +29,9 @@ const isSortable = computed(() => filterExist.value && props.field ? service.get
 const slots = useSlots();
 const hasBodySlot = computed(() => !!slots.body);
 
+const filterData = computed(() => filterExist.value ? service.getFilterByName(props.field ?? '') : undefined);
+
+
 </script>
 
 <template>
@@ -33,6 +43,8 @@ const hasBodySlot = computed(() => !!slots.body);
         :data-type="dataType"
         :sortable="isSortable"
         :header="header"
+        :show-filter-match-modes="!tableComponentTypeEqualsTo(TableComponentType.DROPDOWN, filterData?.tableComponentType) && showFilterMatchMode"
+        :show-filter-operator="showFilterOperator"
     >
         <!-- Header -->
         <template #header="data">
@@ -48,10 +60,13 @@ const hasBodySlot = computed(() => !!slots.body);
 
 
         <!-- Filters -->
-        <template v-if="filterExist" #filter="{ filterModel, field }">
+        <template v-if="filterExist" #filter="{ filterModel, filterCallback }">
             <TableColumnFilter
+                v-if="filterData"
                 :filter-model="filterModel"
-                :filter-data="service.getFilterByName(field)"
+                :filter-data="filterData"
+                :filter-callback="filterCallback"
+                :filter-display="service.filterDisplay"
             />
         </template>
 

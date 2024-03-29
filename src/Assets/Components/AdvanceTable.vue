@@ -3,21 +3,23 @@ import {
     computed,
     provide, ref,
 } from 'vue';
-import TableService from "../Services/tableService.js";
+import TableService, {FilterDisplayType} from "../Services/tableService.js";
 import {DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent} from "primevue/datatable";
-import EmailConfigurationResource from "@/Resources/EmailConfigurationResource";
+import {usePrimeVue} from "primevue/config";
 
 const props = withDefaults(defineProps<{
-    service: TableService<any>,
-    propName: string,
+    service?: TableService<any>,
+    propName?: string,
+    filterDisplay?: FilterDisplayType,
 }>(), {
     service: undefined,
     propName: undefined,
+    filterDisplay: 'menu',
 })
 
 const selection = defineModel('selection');
 
-const service = computed(() => props.propName ? TableService.create<EmailConfigurationResource>().loadByPropName(props.propName) : props.service);
+const service = computed(() => props.service ? props.service : TableService.create<{id:number}>(props.filterDisplay).loadByPropName(props.propName ?? ''));
 
 provide('service', service.value)
 
@@ -33,7 +35,7 @@ provide('service', service.value)
         :rows-per-page-options="service.getRowsPerPageOptions()"
         dataKey="id"
         rowHover
-        filterDisplay="menu"
+        :filterDisplay="filterDisplay"
         paginator
         lazy
         :rows="service.rows"
