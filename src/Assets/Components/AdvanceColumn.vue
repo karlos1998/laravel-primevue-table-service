@@ -43,7 +43,7 @@ const filterData = computed(() => filterExist.value ? service.getFilterByName(pr
         :data-type="dataType"
         :sortable="isSortable"
         :header="header"
-        :show-filter-match-modes="!tableComponentTypeEqualsTo(TableComponentType.DROPDOWN, filterData?.tableComponentType) && showFilterMatchMode"
+        :show-filter-match-modes="filterData?.tableComponentType && !tableComponentTypeEqualsTo(TableComponentType.DROPDOWN, filterData.tableComponentType) && showFilterMatchMode"
         :show-filter-operator="showFilterOperator"
     >
         <!-- Header -->
