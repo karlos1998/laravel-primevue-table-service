@@ -3,6 +3,7 @@
 namespace Karlos3098\LaravelPrimevueTableService\Services;
 
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,35 +16,23 @@ use Karlos3098\LaravelPrimevueTableService\Enum\TableColumnDataType;
 use Karlos3098\LaravelPrimevueTableService\Enum\TableComponentType;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableBaseColumn;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableCalendarColumn;
-use \Exception;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableDropdownColumn;
 use Karlos3098\LaravelPrimevueTableService\Services\Columns\TableDropdownOptions\TableDropdownOption;
 
 abstract class BaseService
 {
-    /**
-     * @var Builder
-     */
     private Builder $builder;
 
-    /**
-     * @var TableService
-     */
     private TableService $table;
 
     /**
-     * @param string $resourceFileName
-     * @param Builder|Model|HasMany|MorphToMany $builder
-     * @param TableService $table
-     * @return AnonymousResourceCollection
      * @throws Exception
      */
     protected function fetchData(
-        string                $resourceFileName,
+        string $resourceFileName,
         Builder|Model|HasMany|MorphToMany $builder,
-        TableService          $table = new TableService(),
-    ): AnonymousResourceCollection
-    {
+        TableService $table = new TableService(),
+    ): AnonymousResourceCollection {
         $this->table = $table;
 
         /**
@@ -74,13 +63,12 @@ abstract class BaseService
     }
 
     /**
-     * @return void
      * @throws Exception
      */
     private function filterable(): void
     {
         $globalFilter = request('tables.'.$this->table->getPropName().'.globalFilter');
-        if(strlen($globalFilter) > 0) {
+        if (strlen($globalFilter) > 0) {
             $this->runGlobalFilter($globalFilter);
             $this->table->setGlobalFilter($globalFilter);
             //todo - obsluga globalnego filtra
@@ -91,7 +79,7 @@ abstract class BaseService
 
         $this->table->setActiveFilters($filters);
 
-//        dd($filters);
+        //        dd($filters);
 
         foreach ($filters as $columnName => $filter) {
             if (property_exists($filter, 'constraints')) {
@@ -120,10 +108,6 @@ abstract class BaseService
     }
 
     /**
-     * @param Builder $query
-     * @param string $columnName
-     * @param \stdClass $rule
-     * @return void
      * @throws Exception
      */
     private function checkColumnFilter(Builder $query, string $columnName, \stdClass $rule): void
@@ -144,7 +128,7 @@ abstract class BaseService
 
         $matchMode = MatchMode::tryFrom($rule->matchMode);
 
-        if($column->tableComponentType === TableComponentType::DROPDOWN) {
+        if ($column->tableComponentType === TableComponentType::DROPDOWN) {
             /**
              * @var TableDropdownColumn $dropdownColumn
              */
@@ -153,10 +137,11 @@ abstract class BaseService
              * @var TableDropdownOption $option
              */
             $option = $dropdownColumn->findOption($value);
-            if($option) {
-             $tableDropdownOptionQuery = $option->getQuery();
-             $tableDropdownOptionQuery($query);
+            if ($option) {
+                $tableDropdownOptionQuery = $option->getQuery();
+                $tableDropdownOptionQuery($query);
             }
+
             return;
         }
 
@@ -176,7 +161,7 @@ abstract class BaseService
                             });
                         } elseif (count($pathData) == 1) {
                             $this->runMatchModeFilter($query, $matchMode, $rule, $path, $value, $column);
-                        } else if (count($pathData) > 2) {
+                        } elseif (count($pathData) > 2) {
                             $relationColumn = array_pop($pathData);
                             $query->where(function ($query) use ($column, $value, $relationColumn, $rule, $matchMode, $pathData) {
                                 $this->applyNestedWhereHas($query, $pathData, $column, $value, $relationColumn, $rule, $matchMode);
@@ -194,21 +179,16 @@ abstract class BaseService
     }
 
     /**
-     * @param $query
-     * @param $pathData
-     * @param $column
-     * @param $value
-     * @param $relationColumn
-     * @param $rule
-     * @param $matchMode
      * @return void
+     *
      * @throws Exception
-     * Wymysl gpt na rekurencje - baaardzo zagniezdzone szukanie po relacjach :D
+     *                   Wymysl gpt na rekurencje - baaardzo zagniezdzone szukanie po relacjach :D
      */
-    private function applyNestedWhereHas($query, $pathData, $column, $value, $relationColumn, $rule, $matchMode) {
+    private function applyNestedWhereHas($query, $pathData, $column, $value, $relationColumn, $rule, $matchMode)
+    {
         $relation = array_shift($pathData); // Pobierz i usuń pierwszy element z $pathData.
 
-        if (!empty($relation)) {
+        if (! empty($relation)) {
             // Aplikuj `whereHas` dla bieżącej relacji.
             $query->whereHas($relation, function ($query) use ($pathData, $column, $value, $relationColumn, $rule, $matchMode) {
                 if (count($pathData) > 0) {
@@ -223,13 +203,6 @@ abstract class BaseService
     }
 
     /**
-     * @param Builder $query
-     * @param MatchMode $matchMode
-     * @param \stdClass $rule
-     * @param string $columnName
-     * @param string $value
-     * @param TableBaseColumn $column
-     * @return void
      * @throws Exception
      */
     private function runMatchModeFilter(Builder $query, MatchMode $matchMode, \stdClass $rule, string $columnName, string $value, TableBaseColumn $column): void
@@ -249,12 +222,6 @@ abstract class BaseService
     }
 
     /**
-     * @param Builder $query
-     * @param MatchMode $matchMode
-     * @param \stdClass $rule
-     * @param string $columnName
-     * @param string $value
-     * @return void
      * @throws Exception
      */
     private function runMatchModeForText(Builder $query, MatchMode $matchMode, \stdClass $rule, string $columnName, string $value): void
@@ -289,13 +256,6 @@ abstract class BaseService
     }
 
     /**
-     * @param Builder $query
-     * @param MatchMode $matchMode
-     * @param \stdClass $rule
-     * @param string $columnName
-     * @param string $value
-     * @param TableCalendarColumn $column
-     * @return void
      * @throws Exception
      */
     public function runMatchModeForDate(Builder $query, MatchMode $matchMode, \stdClass $rule, string $columnName, string $value, TableCalendarColumn $column): void
@@ -326,10 +286,6 @@ abstract class BaseService
 
         }
     }
-
-    /**
-     * @return void
-     */
 
     private function sortable(): void
     {
@@ -362,7 +318,7 @@ abstract class BaseService
 
     private function runGlobalFilter(string $value)
     {
-        $this->builder->where(function($query) use ($value) {
+        $this->builder->where(function ($query) use ($value) {
             foreach ($this->table->globalFilterColumns as $column) {
                 $query->orWhere($column, 'LIKE', "%$value%");
             }

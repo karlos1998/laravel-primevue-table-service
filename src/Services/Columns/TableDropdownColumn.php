@@ -21,6 +21,7 @@ class TableDropdownColumn extends TableBaseColumn
     public function findOption($value)
     {
         $collect = collect($this->options);
+
         return $collect->firstWhere('label', $value->label);
     }
 }

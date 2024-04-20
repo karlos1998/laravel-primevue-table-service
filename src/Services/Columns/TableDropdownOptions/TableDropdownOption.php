@@ -11,8 +11,7 @@ class TableDropdownOption
     public function __construct(
         public string $label,
         private $query
-    )
-    {
+    ) {
     }
 
     public function getQuery()

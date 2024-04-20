@@ -13,8 +13,7 @@ final class TableDropdownOptionTag extends TableDropdownOption
         public string $label,
         private $query,
         public ?TagSeverity $severity = null,
-    )
-    {
+    ) {
         parent::__construct($label, $query);
     }
 

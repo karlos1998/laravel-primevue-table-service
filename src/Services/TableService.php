@@ -38,7 +38,7 @@ class TableService
     /**
      * @param  array  $filters
      * @return void
-     * Zapisuje w tabeli filtry które są w query od uzytkownika - chodzi o to, by zwrocic mu je do serwisu na froncie i zawartosci filtrow.
+     *              Zapisuje w tabeli filtry które są w query od uzytkownika - chodzi o to, by zwrocic mu je do serwisu na froncie i zawartosci filtrow.
      */
     public function setActiveFilters(\stdClass $filtersInput): void
     {
@@ -56,7 +56,7 @@ class TableService
                 if (property_exists($filter, 'constraints')) {
                     $filter->constraints = array_map(function ($obj) use ($column) {
                         try {
-                            if($obj->value !== null) {
+                            if ($obj->value !== null) {
                                 $time = Carbon::parse($obj->value);
                                 $time->setTimezone(config('app.timezone')); // inaczej jest godzina do tylu i wychodzi przez to jakby dzien wczesniejszy :) (23:00)
                                 $obj->value = $time->format($column->getPhpDateFormat());
