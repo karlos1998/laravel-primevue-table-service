@@ -2,7 +2,9 @@ Package responsible for pagination and sorting of tables with primeVue on the La
 ======
 
 ---
-Author: [a][/a] 
+Author: [Let's Code IT - Karol Sójka](https://www.letscode.it/) 
+
+![image1.png](image1.png)
 
 ---
 
