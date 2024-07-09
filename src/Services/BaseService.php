@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -30,15 +31,40 @@ abstract class BaseService
      */
     protected function fetchData(
         string $resourceFileName,
-        Builder|Model|HasMany|MorphToMany $builder,
+        Builder|Model|HasMany|MorphToMany|MorphMany $builder,
         TableService $table = new TableService(),
     ): AnonymousResourceCollection {
-        $this->table = $table;
+
+        $collection = $this->getQueryBuilder(
+            builder: $builder,
+            table: $table,
+        )
+        ->orderBy('created_at', 'desc')
+        ->paginate(
+            perPage: $this->table->getRowsPerPage(),
+            pageName: $this->table->getPageParameterName()
+        );
 
         /**
          * @var JsonResource $resource
          */
         $resource = $resourceFileName;
+
+        /**
+         * @var AnonymousResourceCollection $resource
+         */
+        $resource = $resource::collection($collection);
+        $resource->additional(['tableData' => $this->table]);
+
+        return $resource;
+    }
+
+    protected function getQueryBuilder(
+        Builder|Model|HasMany|MorphToMany|MorphMany $builder,
+        TableService $table
+    ): Builder
+    {
+        $this->table = $table;
 
         /**
          * @var HasMany $builder
@@ -49,17 +75,7 @@ abstract class BaseService
 
         $this->sortable();
 
-        $collection = $this->builder
-            ->orderBy('created_at', 'desc')
-            ->paginate(perPage: $this->table->getRowsPerPage(), pageName: $this->table->getPageParameterName());
-
-        /**
-         * @var AnonymousResourceCollection $resource
-         */
-        $resource = $resource::collection($collection);
-        $resource->additional(['tableData' => $this->table]);
-
-        return $resource;
+        return $this->builder;
     }
 
     /**
