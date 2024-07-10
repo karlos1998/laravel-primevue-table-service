@@ -9,6 +9,7 @@ import {
     DataTableFilterMetaData, DataTableOperatorFilterMetaData,
     DataTablePageEvent, DataTableSortEvent
 } from "primevue/datatable";
+import { PageState } from 'primevue/paginator';
 
 export interface Response<T> {
     data: T[];
@@ -187,7 +188,7 @@ export class TableService<DataType> {
      * Fuknkcja do pidpięcia pod emit z tabeli od zmiany strony
      * @param data
      */
-    changePage(data: DataTablePageEvent) {
+    changePage(data: DataTablePageEvent|PageState) {
         this.meta.current_page = data.page + 1;
         this.meta.per_page = data.rows;
 
