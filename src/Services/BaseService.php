@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -31,7 +32,7 @@ abstract class BaseService
      */
     protected function fetchData(
         string $resourceFileName,
-        Builder|Model|HasMany|MorphToMany|MorphMany $builder,
+        Builder|Model|HasMany|MorphToMany|MorphMany|MorphTo $builder,
         TableService $table = new TableService(),
     ): AnonymousResourceCollection {
 
@@ -60,7 +61,7 @@ abstract class BaseService
     }
 
     protected function getQueryBuilder(
-        Builder|Model|HasMany|MorphToMany|MorphMany $builder,
+        Builder|Model|HasMany|MorphToMany|MorphMany|MorphTo $builder,
         TableService $table
     ): Builder
     {
