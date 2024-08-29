@@ -1,6 +1,5 @@
 import {router, usePage} from "@inertiajs/vue3";
 import {ref, toRaw, watch} from "vue";
-import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {TableComponentType} from "../Enums/TableComponentType";
 import {ColumnDataType} from "../Enums/ColumnDataType";
 import {
@@ -322,10 +321,10 @@ export class TableService<DataType> {
 
                     case TableComponentType.INPUT_TEXT:
                     default: return {
-                        operator: FilterOperator.AND,
-                        constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] }
+                        operator: 'AND',
+                        constraints: [{ value: null, matchMode: 'STARTS_WITH' }] }
 
-                    case TableComponentType.CALENDAR: return { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] }
+                    case TableComponentType.CALENDAR: return { operator: 'AND', constraints: [{ value: null, matchMode: 'DATE_IS' }] }
                 }
             })(dataFilters[key])
         }
