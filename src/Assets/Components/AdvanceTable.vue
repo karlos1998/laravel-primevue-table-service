@@ -1,11 +1,11 @@
 <script setup lang="ts">
+
 import {
     computed,
     provide, ref,
 } from 'vue';
 import TableService, {FilterDisplayType} from "../Services/tableService.js";
 import {DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent} from "primevue/datatable";
-import {usePrimeVue} from "primevue/config";
 
 const props = withDefaults(defineProps<{
     service?: TableService<any>,
@@ -27,7 +27,7 @@ provide('service', service.value)
 
 
 <template>
-    <DataTable
+    <OwnDataTable
         ref="mailTable"
         :value="service.data"
         v-model:filters="service.tableModelFilters"
@@ -61,5 +61,5 @@ provide('service', service.value)
 
         <slot />
 
-    </DataTable>
+    </OwnDataTable>
 </template>
