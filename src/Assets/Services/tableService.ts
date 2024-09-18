@@ -5,11 +5,12 @@ import {ColumnDataType} from "../Enums/ColumnDataType";
 import {
     DataTableFilterEvent,
     DataTableFilterMeta,
-    DataTableFilterMetaData, DataTableOperatorFilterMetaData,
+    DataTableOperatorFilterMetaData,
     DataTablePageEvent, DataTableSortEvent
 } from "primevue/datatable";
 import { PageState } from 'primevue/paginator';
 
+import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 export interface Response<T> {
     data: T[];
     meta: ResponseMeta,
@@ -321,10 +322,10 @@ export class TableService<DataType> {
 
                     case TableComponentType.INPUT_TEXT:
                     default: return {
-                        operator: 'AND',
-                        constraints: [{ value: null, matchMode: 'STARTS_WITH' }] }
+                        operator: FilterOperator.AND,
+                        constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] }
 
-                    case TableComponentType.CALENDAR: return { operator: 'AND', constraints: [{ value: null, matchMode: 'DATE_IS' }] }
+                    case TableComponentType.CALENDAR: return { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] }
                 }
             })(dataFilters[key])
         }
