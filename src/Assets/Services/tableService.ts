@@ -10,7 +10,7 @@ import {
 } from "primevue/datatable";
 import { PageState } from 'primevue/paginator';
 
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+// import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 export interface Response<T> {
     data: T[];
     meta: ResponseMeta,
@@ -322,10 +322,11 @@ export class TableService<DataType> {
 
                     case TableComponentType.INPUT_TEXT:
                     default: return {
-                        operator: FilterOperator.AND,
-                        constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] }
+                        // operator: FilterOperator.AND,
+                        operator: 'and',
+                        constraints: [{ value: null, matchMode: 'contains' }] }
 
-                    case TableComponentType.CALENDAR: return { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] }
+                    case TableComponentType.CALENDAR: return { operator: 'and', constraints: [{ value: null, matchMode: 'dateIs' }] }
                 }
             })(dataFilters[key])
         }
