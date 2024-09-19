@@ -1,5 +1,7 @@
 <script setup lang="ts">
 
+import OwnDataTable from '@advance-table-primevue-dir/DataTable.vue';
+
 import {
     computed,
     provide, ref,

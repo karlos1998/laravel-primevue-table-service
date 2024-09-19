@@ -34,8 +34,8 @@ import DataTable from '@/karlos3098/laravel-primevue-table-service/src/Assets/Pr
 
 Now you just need to add these 2 main components to your app.js file as well
 ```js
-import AdvanceTable from '@/karlos3098/laravel-primevue-table-service/src/Assets/Components/AdvanceTable.vue';
-import AdvanceColumn from '@/packages/karlos3098/laravel-primevue-table-service/src/Assets/Components/AdvanceColumn.vue';
+import AdvanceTable from '@advance-table/Components/AdvanceTable.vue';
+import AdvanceColumn from '@advance-table/Components/AdvanceColumn.vue';
 ```
 
 Don't forget to initialize them!
