@@ -11,7 +11,7 @@ import {
 import { PageState } from 'primevue/paginator';
 
 // import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
-export interface Response<T> {
+export interface AdvanceTableResponse<T> {
     data: T[];
     meta: ResponseMeta,
     tableData: TableData,
@@ -144,7 +144,7 @@ export class TableService<DataType> {
      * @param response
      * @returns {TableService}
      */
-    loadData (response: Response<DataType>): this {
+    loadData (response: AdvanceTableResponse<DataType>): this {
         if(!response?.data) throw new Error('LoadData: Brak data w response.');
         if(!response?.meta) throw new Error('LoadData: Brak meta w response.');
 
@@ -169,7 +169,7 @@ export class TableService<DataType> {
     /************ Metoda 2 (skrocona :D) **********************/
 
     loadByPropName(propName: string) {
-        const data =  structuredClone(toRaw(usePage().props[propName])) as Response<DataType>;
+        const data =  structuredClone(toRaw(usePage().props[propName])) as AdvanceTableResponse<DataType>;
         // watch(usePage(), (newUsePage) => {
         //     console.log(usePage(), 'usePage()')
         //     if(newUsePage.props[propName]) {
