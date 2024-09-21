@@ -192,8 +192,8 @@ export class TableService<DataType> {
         this.meta.current_page = data.page + 1;
         this.meta.per_page = data.rows;
 
-        console.log('changePage', data)
-        console.log('filters in changePage', this.tableData.activeFilters)
+        // console.log('changePage', data)
+        // console.log('filters in changePage', this.tableData.activeFilters)
 
         this.reload();
     }
@@ -242,7 +242,7 @@ export class TableService<DataType> {
         } catch (e) {
             console.warn('router reload fail --> ', e)
         }
-        console.log('after reload log')
+        // console.log('after reload log')
     }
 
     /**
@@ -280,7 +280,7 @@ export class TableService<DataType> {
 
 
     public filter(data : DataTableFilterEvent) {
-        console.log('filter -> ', data.filters)
+        // console.log('filter -> ', data.filters)
 
         this.tableData.activeFilters = data.filters;
         // this.tableData.activeFilters = { ...data.filters };
@@ -304,7 +304,7 @@ export class TableService<DataType> {
             if(key in activeFilters) {
                 let value = activeFilters[key] as DataTableOperatorFilterMetaData; //TODO ! To znaczy ze obsluguje tylko multi wybieranie - pojedyncze trzeba tez pgarmac
 
-                console.log('test value', key, value)
+                // console.log('test value', key, value)
 
                 //todo - ogolnie ciezki temat ze trzba jakis standard formatowania tej daty ogarnac, a druga sprawa ze to jakos odpala niesokonczona petle :D
                 // if(dataFilters[key].tableComponentType === TableComponentType.CALENDAR) {
@@ -331,7 +331,7 @@ export class TableService<DataType> {
             })(dataFilters[key])
         }
 
-        console.log('this.tableModelFilters', this.tableModelFilters)
+        // console.log('this.tableModelFilters', this.tableModelFilters)
 
     }
 
@@ -351,7 +351,7 @@ export class TableService<DataType> {
             field: tableData.sortField,
             order: tableData.sortOrder,
         }
-        console.log('sort loaded', this.sort);
+        // console.log('sort loaded', this.sort);
     }
 
     public globalFilterUpdated = debounce( (data: string) => {
