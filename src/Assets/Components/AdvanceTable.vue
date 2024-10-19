@@ -10,11 +10,9 @@ import TableService, {FilterDisplayType} from "../Services/tableService.js";
 import {DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent} from "primevue/datatable";
 
 const props = withDefaults(defineProps<{
-    service?: TableService<any>,
     propName?: string,
     filterDisplay?: FilterDisplayType,
 }>(), {
-    service: undefined,
     propName: undefined,
     filterDisplay: 'menu',
 })
