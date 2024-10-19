@@ -1,13 +1,10 @@
 <script setup lang="ts">
 
-import { ConversationTreeResource } from '@/Resources/ConversationTree.resource';
+import TableService from '@advance-table/Services/tableService';
+import { DataViewPageEvent } from 'primevue/dataview';
 import { computed } from 'vue';
-import TableService, { FilterDisplayType } from '@advance-table/Services/tableService';
-import { DataTablePageEvent } from 'primevue/datatable';
-import OwnDataTable from '@advance-table-primevue-dir/DataTable.vue';
 
 const props = withDefaults(defineProps<{
-    service?: TableService<any>,
     propName?: string,
 }>(), {
     service: undefined,
@@ -21,7 +18,8 @@ const service = computed(() => TableService.create<{id:number}>().loadByPropName
 <template>
     <DataView
         :value="service.data"
-        @page="(page: DataTablePageEvent) => service.changePage(page)"
+        data-key="id"
+        @page="(page: DataViewPageEvent) => service.changePage(page)"
         paginator
         lazy
         :rows="service.rows"
@@ -32,5 +30,4 @@ const service = computed(() => TableService.create<{id:number}>().loadByPropName
             <slot name="list" v-bind="data" />
         </template>
     </DataView>
-
 </template>
