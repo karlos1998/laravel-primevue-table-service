@@ -96,7 +96,7 @@ export class TableService<DataType> {
         globalFilter: '',
     };
 
-    globalFilterValue: string = ''
+    globalFilterValue = ref('')
 
     tableModelFilters: DataTableFilterMeta = {}
 
@@ -115,16 +115,26 @@ export class TableService<DataType> {
 
     filterDisplay: FilterDisplayType = 'menu';
 
-    constructor(filterDisplay: FilterDisplayType) {
+    globalFilterDebounceTime: number;
+
+    constructor(filterDisplay: FilterDisplayType, globalFilterDebounceTime:number = 500) {
         this.propName = '';
         this.filterDisplay = filterDisplay;
+        this.globalFilterDebounceTime = globalFilterDebounceTime;
+
+        console.log('globalFilterDebounceTime', globalFilterDebounceTime)
+
+        this.globalFilterUpdatedDebounce = debounce( (data: string) => {
+            this.globalFilter = data;
+            this.reload();
+        }, this.globalFilterDebounceTime)
     }
 
     /**
      * Utworzenie instancji
      * @returns {TableService}
      */
-    static create = <DataType>(filterDisplay: FilterDisplayType = 'menu'): TableService<DataType> => new this<DataType>(filterDisplay)
+    static create = <DataType>(filterDisplay: FilterDisplayType = 'menu', globalFilterDebounceTime: number = 500): TableService<DataType> => new this<DataType>(filterDisplay, globalFilterDebounceTime)
 
 
     /************ Metoda 1 **********************/
@@ -155,7 +165,7 @@ export class TableService<DataType> {
             this.tableData = response.tableData
             this.defineFilters(this.tableData.columns, this.tableData.activeFilters)
             this.loadSort(this.tableData);
-            this.globalFilterValue = response.tableData.globalFilter;
+            this.globalFilterValue.value = response.tableData.globalFilter;
         }
 
         this.data = response.data
@@ -354,10 +364,12 @@ export class TableService<DataType> {
         // console.log('sort loaded', this.sort);
     }
 
-    public globalFilterUpdated = debounce( (data: string) => {
-        this.globalFilter = data;
-        this.reload();
-    }, 500)
+    public globalFilterUpdatedDebounce:Function
+
+    public globalFilterUpdated = (data: string) => {
+        this.globalFilterValue.value = data;
+        this.globalFilterUpdatedDebounce(data);
+    }
 
 }
 

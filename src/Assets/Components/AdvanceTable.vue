@@ -13,14 +13,16 @@ const props = withDefaults(defineProps<{
     service?: TableService<any>,
     propName?: string,
     filterDisplay?: FilterDisplayType,
+    globalFilterDebounceTime: number
 }>(), {
     propName: undefined,
     filterDisplay: 'menu',
+    globalFilterDebounceTime: 500,
 })
 
 const selection = defineModel('selection');
 
-const service = computed(() => props.service ? props.service : TableService.create<{id:number}>(props.filterDisplay).loadByPropName(props.propName ?? ''));
+const service = computed(() => props.service ? props.service : TableService.create<{id:number}>(props.filterDisplay, props.globalFilterDebounceTime).loadByPropName(props.propName ?? ''));
 
 provide('service', service.value)
 
@@ -49,7 +51,9 @@ provide('service', service.value)
     >
 
         <template #header>
-            <slot name="header" v-bind:globalFilterValue="service.globalFilterValue" v-bind:globalFilterUpdated="service.globalFilterUpdated"></slot>
+            <slot name="header"
+                  v-bind:globalFilterValue="service.globalFilterValue.value"
+                  v-bind:globalFilterUpdated="service.globalFilterUpdated" />
         </template>
 
         <template #empty>
