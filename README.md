@@ -4,6 +4,8 @@ Package responsible for pagination and sorting of tables with primeVue on the La
 ---
 Author: [Let's Code IT - Karol Sójka](https://www.letscode.it/) 
 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/karlos)
+
 ![image1.png](image1.png)
 
 ---
