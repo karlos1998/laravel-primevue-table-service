@@ -17,6 +17,8 @@ class TableBaseColumn
 
     protected readonly ?string $sortPath;
 
+    protected ?TableColumnDataType $sortDataType = null;
+
     public function getQueryPaths()
     {
         return $this->queryPaths;
@@ -35,5 +37,10 @@ class TableBaseColumn
     public function getSpecificSortPath()
     {
         return $this->sortPath;
+    }
+
+    public function getSortDataType(): ?TableColumnDataType
+    {
+        return $this->sortDataType;
     }
 }

@@ -12,6 +12,7 @@ class TableTextColumn extends TableBaseColumn
         public bool $sortable = false,
         protected array $queryPaths = [],
         protected readonly ?string $sortPath = null,
+        protected ?TableColumnDataType $sortDataType = null,
     ) {
         $this->columnDataType = TableColumnDataType::DEFAULT;
         $this->tableComponentType = TableComponentType::INPUT_TEXT;

@@ -325,10 +325,37 @@ abstract class BaseService
         }
 
         $sortPath = $column->hasSpecificSortPath() ? $column->getSpecificSortPath() : $field;
+        $sortDataType = $column->getSortDataType();
 
-        //TODO - zrobic obsluge sortpath, znaczy ze jak bedzie nazwa_relacji.created_at itp
+        // Check if the sort path contains '->' (indicating a JSON field)
+        if (str_contains($sortPath, '->')) {
+            // Extract the column name and JSON path
+            $parts = explode('->', $sortPath, 2);
+            $column = $parts[0];
+            $jsonPath = $parts[1];
 
-        $this->builder->orderBy($sortPath, $order);
+            // For debugging
+            $sql = "";
+
+            if ($sortDataType === TableColumnDataType::NUMERIC) {
+                // Sort as integer for JSON fields
+                $sql = "CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column}`, '$.{$jsonPath}')) AS UNSIGNED) {$order}";
+            } elseif ($sortDataType === TableColumnDataType::DATE) {
+                // Sort as date for JSON fields
+                $sql = "CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column}`, '$.{$jsonPath}')) AS DATE) {$order}";
+            } else {
+                // Default sorting for JSON fields
+                $sql = "JSON_UNQUOTE(JSON_EXTRACT(`{$column}`, '$.{$jsonPath}')) {$order}";
+            }
+
+            // Debug the SQL query
+            // dd($sortPath, $order, $sql);
+
+            $this->builder->orderByRaw($sql);
+        } else {
+            // Regular column sorting
+            $this->builder->orderBy($sortPath, $order);
+        }
 
         $this->table->setSortData($field, $order);
     }

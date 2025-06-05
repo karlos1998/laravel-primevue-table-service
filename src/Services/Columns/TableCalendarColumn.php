@@ -18,6 +18,7 @@ class TableCalendarColumn extends TableBaseColumn
         public bool $sortable = false,
         protected array $queryPaths = [],
         protected readonly ?string $sortPath = null,
+        protected ?TableColumnDataType $sortDataType = null,
     ) {
         $this->columnDataType = TableColumnDataType::DATE;
         $this->tableComponentType = TableComponentType::CALENDAR;
