@@ -20,6 +20,7 @@ const valueUpdated = () => {
 }
 const dropdownUpdated = () => valueUpdated();
 const calendarUpdated = () => valueUpdated();
+const sliderUpdated = () => valueUpdated();
 
 const inputUpdated = debounce(valueUpdated, 1000);
 
@@ -35,6 +36,21 @@ const inputUpdated = debounce(valueUpdated, 1000);
         :mask="filterData.mask"
         @change="calendarUpdated()"
     />
+    <div v-else-if="tableComponentTypeEqualsTo(TableComponentType.SLIDER, filterData.tableComponentType)" class="p-column-filter">
+        <Slider
+            v-model="filterModel.value"
+            range
+            class="m-4"
+            :min="filterData.min || 0"
+            :max="filterData.max || 100"
+            :step="filterData.step || 1"
+            @change="sliderUpdated()"
+        />
+        <div class="flex items-center justify-between px-2">
+            <span>{{ filterModel.value ? filterModel.value[0] : (filterData.min || 0) }}</span>
+            <span>{{ filterModel.value ? filterModel.value[1] : (filterData.max || 100) }}</span>
+        </div>
+    </div>
     <Dropdown
         v-else-if="tableComponentTypeEqualsTo(TableComponentType.DROPDOWN, filterData.tableComponentType)"
         :options="filterData.options"

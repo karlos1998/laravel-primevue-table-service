@@ -222,7 +222,7 @@ abstract class BaseService
     /**
      * @throws Exception
      */
-    private function runMatchModeFilter(Builder $query, MatchMode $matchMode, \stdClass $rule, string $columnName, string $value, TableBaseColumn $column): void
+    private function runMatchModeFilter(Builder $query, MatchMode $matchMode, \stdClass $rule, string $columnName, $value, TableBaseColumn $column): void
     {
         switch ($column->columnDataType) {
 
@@ -234,6 +234,10 @@ abstract class BaseService
 
             case TableColumnDataType::DATE:
                 $this->runMatchModeForDate($query, $matchMode, $rule, $columnName, $value, $column);
+                break;
+
+            case TableColumnDataType::NUMERIC:
+                $this->runMatchModeForNumeric($query, $matchMode, $rule, $columnName, $value, $column);
                 break;
         }
     }
@@ -301,6 +305,112 @@ abstract class BaseService
                 $query->whereDate($columnName, '>=', $value);
                 break;
 
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function runMatchModeForNumeric(Builder $query, MatchMode $matchMode, \stdClass $rule, string $columnName, $value, TableBaseColumn $column): void
+    {
+        // Check if the column name contains '->' (indicating a JSON field)
+        if (str_contains($columnName, '->')) {
+            // Extract the column name and JSON path
+            $parts = explode('->', $columnName, 2);
+            $column_name = $parts[0];
+            $jsonPath = $parts[1];
+
+            // For slider, value is an array with [min, max]
+            if (is_array($value) && count($value) === 2) {
+                $min = $value[0];
+                $max = $value[1];
+
+                // Apply range filter for JSON field
+                $query->where(function($query) use ($column_name, $jsonPath, $min, $max) {
+                    // For debugging
+                    // $sql = "CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) >= {$min} AND CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) <= {$max}";
+                    // dd("JSON Range Filter SQL:", $sql);
+
+                    $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) >= ?", [$min])
+                          ->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) <= ?", [$max]);
+                });
+                return;
+            }
+        } else {
+            // For slider, value is an array with [min, max]
+            if (is_array($value) && count($value) === 2) {
+                $min = $value[0];
+                $max = $value[1];
+
+                // Apply range filter for regular column
+                $query->where(function($query) use ($columnName, $min, $max) {
+                    $query->where($columnName, '>=', $min)
+                          ->where($columnName, '<=', $max);
+                });
+                return;
+            }
+        }
+
+        // For non-array values, use standard numeric comparison
+        // Check if we're dealing with a JSON field
+        if (isset($column_name) && isset($jsonPath)) {
+            // Handle JSON field comparisons
+            switch ($matchMode) {
+                default:
+                    throw new Exception('Unknown matchMode: '.$rule->matchMode);
+                case MatchMode::Equals:
+                    $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) = ?", [$value]);
+                    break;
+                case MatchMode::NotEquals:
+                    $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) != ?", [$value]);
+                    break;
+                case MatchMode::Lt:
+                    $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) < ?", [$value]);
+                    break;
+                case MatchMode::Lte:
+                    $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) <= ?", [$value]);
+                    break;
+                case MatchMode::Gt:
+                    $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) > ?", [$value]);
+                    break;
+                case MatchMode::Gte:
+                    $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) >= ?", [$value]);
+                    break;
+                case MatchMode::Between:
+                    if (is_array($value) && count($value) === 2) {
+                        $query->whereRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(`{$column_name}`, '$.{$jsonPath}')) AS UNSIGNED) BETWEEN ? AND ?", [$value[0], $value[1]]);
+                    }
+                    break;
+            }
+        } else {
+            // Regular column comparisons
+            switch ($matchMode) {
+                default:
+                    throw new Exception('Unknown matchMode: '.$rule->matchMode);
+                case MatchMode::Equals:
+                    $query->where($columnName, $value);
+                    break;
+                case MatchMode::NotEquals:
+                    $query->where($columnName, '!=', $value);
+                    break;
+                case MatchMode::Lt:
+                    $query->where($columnName, '<', $value);
+                    break;
+                case MatchMode::Lte:
+                    $query->where($columnName, '<=', $value);
+                    break;
+                case MatchMode::Gt:
+                    $query->where($columnName, '>', $value);
+                    break;
+                case MatchMode::Gte:
+                    $query->where($columnName, '>=', $value);
+                    break;
+                case MatchMode::Between:
+                    if (is_array($value) && count($value) === 2) {
+                        $query->whereBetween($columnName, [$value[0], $value[1]]);
+                    }
+                    break;
+            }
         }
     }
 

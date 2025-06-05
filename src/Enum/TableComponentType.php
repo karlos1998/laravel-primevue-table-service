@@ -6,6 +6,6 @@ enum TableComponentType: string
 {
     case INPUT_TEXT = 'input_text';
     case CALENDAR = 'calendar';
-
+    case SLIDER = 'slider';
     case DROPDOWN = 'dropdown';
 }

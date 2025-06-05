@@ -1,6 +1,7 @@
 export enum TableComponentType {
     CALENDAR = 'calendar',
     INPUT_TEXT = 'input_text',
+    SLIDER = 'slider',
     DROPDOWN = 'dropdown',
 }
 
