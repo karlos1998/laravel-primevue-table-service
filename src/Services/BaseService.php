@@ -337,8 +337,48 @@ abstract class BaseService
     {
         $this->builder->where(function ($query) use ($value) {
             foreach ($this->table->globalFilterColumns as $column) {
-                $query->orWhere($column, 'LIKE', "%$value%");
+                $pathData = explode('.', $column);
+
+                if (count($pathData) === 1) {
+                    // Simple column
+                    $query->orWhere($column, 'LIKE', "%$value%");
+                } elseif (count($pathData) === 2) {
+                    // Simple relation: relation.column
+                    $relation = $pathData[0];
+                    $relationColumn = $pathData[1];
+
+                    $query->orWhereHas($relation, function ($query) use ($relationColumn, $value) {
+                        $query->where($relationColumn, 'LIKE', "%$value%");
+                    });
+                } elseif (count($pathData) > 2) {
+                    // Nested relations: relation1.relation2.column
+                    $relationColumn = array_pop($pathData);
+                    $query->orWhere(function ($query) use ($pathData, $relationColumn, $value) {
+                        $this->applyNestedWhereHasForGlobalFilter($query, $pathData, $relationColumn, $value);
+                    });
+                }
             }
         });
+    }
+
+    /**
+     * Helper method for applying nested whereHas for global filter
+     */
+    private function applyNestedWhereHasForGlobalFilter($query, $pathData, $relationColumn, $value)
+    {
+        $relation = array_shift($pathData); // Get and remove the first element from $pathData
+
+        if (!empty($relation)) {
+            // Apply `whereHas` for the current relation
+            $query->whereHas($relation, function ($query) use ($pathData, $relationColumn, $value) {
+                if (count($pathData) > 0) {
+                    // If there are more relations, recursively apply `whereHas` for them
+                    $this->applyNestedWhereHasForGlobalFilter($query, $pathData, $relationColumn, $value);
+                } else {
+                    // We're at the "end" of the path, apply the filter
+                    $query->where($relationColumn, 'LIKE', "%$value%");
+                }
+            });
+        }
     }
 }
