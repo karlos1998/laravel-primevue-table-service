@@ -472,29 +472,36 @@ abstract class BaseService
 
     private function runGlobalFilter(string $value)
     {
+
         $this->builder->where(function ($query) use ($value) {
-            foreach ($this->table->globalFilterColumns as $column) {
-                $pathData = explode('.', $column);
 
-                if (count($pathData) === 1) {
-                    // Simple column
-                    $query->orWhere($column, 'LIKE', "%$value%");
-                } elseif (count($pathData) === 2) {
-                    // Simple relation: relation.column
-                    $relation = $pathData[0];
-                    $relationColumn = $pathData[1];
+            $searchTerms = preg_split('/\s+/', trim($value), -1, PREG_SPLIT_NO_EMPTY);
 
-                    $query->orWhereHas($relation, function ($query) use ($relationColumn, $value) {
-                        $query->where($relationColumn, 'LIKE', "%$value%");
-                    });
-                } elseif (count($pathData) > 2) {
-                    // Nested relations: relation1.relation2.column
-                    $relationColumn = array_pop($pathData);
-                    $query->orWhere(function ($query) use ($pathData, $relationColumn, $value) {
-                        $this->applyNestedWhereHasForGlobalFilter($query, $pathData, $relationColumn, $value);
-                    });
+            foreach ($searchTerms as $searchTerm) {
+                foreach ($this->table->globalFilterColumns as $column) {
+                    $pathData = explode('.', $column);
+
+                    if (count($pathData) === 1) {
+                        // Simple column
+                        $query->orWhere($column, 'LIKE', "%$searchTerm%");
+                    } elseif (count($pathData) === 2) {
+                        // Simple relation: relation.column
+                        $relation = $pathData[0];
+                        $relationColumn = $pathData[1];
+
+                        $query->orWhereHas($relation, function ($query) use ($searchTerm, $relationColumn) {
+                            $query->where($relationColumn, 'LIKE', "%$searchTerm%");
+                        });
+                    } elseif (count($pathData) > 2) {
+                        // Nested relations: relation1.relation2.column
+                        $relationColumn = array_pop($pathData);
+                        $query->orWhere(function ($query) use ($pathData, $relationColumn, $searchTerm) {
+                            $this->applyNestedWhereHasForGlobalFilter($query, $pathData, $relationColumn, $searchTerm);
+                        });
+                    }
                 }
             }
+
         });
     }
 
