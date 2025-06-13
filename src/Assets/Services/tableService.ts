@@ -9,6 +9,7 @@ import {
     DataTablePageEvent, DataTableSortEvent
 } from "primevue/datatable";
 import { PageState } from 'primevue/paginator';
+import axios from 'axios';
 
 // import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 export interface AdvanceTableResponse<T> {
@@ -165,7 +166,11 @@ export class TableService<DataType> {
             this.tableData = response.tableData
             this.defineFilters(this.tableData.columns, this.tableData.activeFilters)
             this.loadSort(this.tableData);
-            this.globalFilterValue.value = response.tableData.globalFilter;
+
+            // Only update the globalFilterValue if there's no active filter or if it's the initial load
+            if (!this.globalFilter || this.globalFilterValue.value === '') {
+                this.globalFilterValue.value = response.tableData.globalFilter;
+            }
         }
 
         this.data = response.data
@@ -211,28 +216,63 @@ export class TableService<DataType> {
     private reload() {
         this.loading.value = true;
 
+        // If we're using global filter, use Axios to prevent page reload
+        if (this.globalFilter) {
+            // Create params object for both URL update and axios request
+            const params = {
+                tables: {
+                    [this.tableData.propName]: {
+                        page: this.meta.current_page,
+                        perPage: this.meta.per_page,
+                        globalFilter: this.globalFilter,
+                        filters: JSON.stringify(this.tableData.activeFilters),
+                        sortOrder: this.sort.order,
+                        sortField: this.sort.field,
+                    }
+                }
+            };
 
-        // router.get(window.location.pathname, {
-        //     tables: {
-        //         [ this.tableData.propName ]: {
-        //             page: this.meta.current_page,
-        //             perPage: this.meta.per_page,
-        //             globalFilter: this.globalFilter ?? undefined,
-        //             filters: JSON.stringify(this.tableData.activeFilters),
-        //             sortOrder: this.sort.order,
-        //             sortField: this.sort.field,
-        //             // hasActiveFilters: Object.values(this.filters). //todo
-        //         }
-        //     }
-        // }, {
-        //     only: [ this.propName ]
-        // })
-        // return;
+            // Update URL with the global filter value without causing a page reload
+            this.updateUrlWithParams(params);
 
-        try {
-            router.reload({
-                only: [this.propName],
-                data: {
+            // Get the current URL including query parameters
+            const url = window.location.pathname + window.location.search;
+
+            // Get the current URL to extract the X-Inertia-Version from the document
+            const inertiaVersion = document.querySelector('div[data-page]')?.getAttribute('data-page') ?
+                JSON.parse(document.querySelector('div[data-page]')?.getAttribute('data-page') || '{}').version : '';
+
+            /**
+             * Rozwiązanie axios powstało wyłącznie z powodu odświeżania danych podczas ciągłego pisania w global filter ;x
+             */
+
+            axios.get(url, {
+                params,
+                headers: {
+                    'X-Inertia': 'true',
+                    'X-Inertia-Partial-Component': usePage().component,
+                    // 'X-Inertia-Partial-Component': usePage().component.value.split('::')[0],
+                    'X-Inertia-Partial-Data': this.propName,
+                    'X-Inertia-Version': inertiaVersion,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.data && response.data.props && response.data.props[this.propName]) {
+                    this.loadData(response.data.props[this.propName] as AdvanceTableResponse<DataType>);
+                }
+            })
+            .catch(error => {
+                console.warn('Axios request failed --> ', error);
+                this.loading.value = false;
+            });
+        } else {
+            // For non-global filter operations, use the original router.reload
+            try {
+                // Create params object for both URL update and router reload
+                const params = {
                     tables: {
                         [this.tableData.propName]: {
                             page: this.meta.current_page,
@@ -241,18 +281,24 @@ export class TableService<DataType> {
                             filters: JSON.stringify(this.tableData.activeFilters),
                             sortOrder: this.sort.order,
                             sortField: this.sort.field,
-                            // hasActiveFilters: Object.values(this.filters). //todo
                         }
                     }
-                },
-                onSuccess: () => {
-                    this.loading.value = false
-                }
-            })
-        } catch (e) {
-            console.warn('router reload fail --> ', e)
+                };
+
+                // Update URL with the parameters without causing a page reload
+                this.updateUrlWithParams(params);
+
+                router.reload({
+                    only: [this.propName],
+                    data: params,
+                    onSuccess: () => {
+                        this.loading.value = false
+                    }
+                })
+            } catch (e) {
+                console.warn('router reload fail --> ', e)
+            }
         }
-        // console.log('after reload log')
     }
 
     /**
@@ -369,6 +415,50 @@ export class TableService<DataType> {
     public globalFilterUpdated = (data: string) => {
         this.globalFilterValue.value = data;
         this.globalFilterUpdatedDebounce(data);
+    }
+
+    /**
+     * Updates the URL with the provided parameters without causing a page reload
+     * @param params The parameters to add to the URL
+     */
+    private updateUrlWithParams(params: any) {
+        // Get the current URL and parse its query parameters
+        const url = new URL(window.location.href);
+        const searchParams = url.searchParams;
+
+        // Convert the params object to URL query parameters
+        const flattenParams = (obj: any, prefix = '') => {
+            return Object.keys(obj).reduce((acc: any, key) => {
+                const pre = prefix.length ? `${prefix}[${key}]` : key;
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    Object.assign(acc, flattenParams(obj[key], pre));
+                } else {
+                    acc[pre] = obj[key];
+                }
+                return acc;
+            }, {});
+        };
+
+        const flatParams = flattenParams(params);
+
+        // Update or add each parameter to the URL
+        Object.keys(flatParams).forEach(key => {
+            if (flatParams[key] !== undefined && flatParams[key] !== null) {
+                searchParams.set(key, flatParams[key]);
+            }
+        });
+
+        // Preserve other query parameters that are not related to the table
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.forEach((value, key) => {
+            if (!key.startsWith('tables[')) {
+                searchParams.set(key, value);
+            }
+        });
+
+        // Update the URL without causing a page reload
+        const newUrl = `${url.pathname}?${searchParams.toString()}`;
+        window.history.replaceState({}, '', newUrl);
     }
 
 }
