@@ -21,6 +21,20 @@ Publish components for vue
 php artisan vendor:publish --provider="Karlos3098\\LaravelPrimevueTableService\\Providers\\LaravelPrimevueTableServiceProvider"
 ```
 
+If you need to update the components after a package update, you can use one of these methods:
+
+1. Force publish with the standard tag:
+```sh
+php artisan vendor:publish --tag=laravel-primevue-table --force
+```
+
+2. Use the dedicated command that always forces overwrite:
+```sh
+php artisan primevue-table:publish
+```
+
+This dedicated command ensures all assets are updated to the latest version from the package.
+
 > [!WARNING]
 > Now the most difficult step, but very important
 
@@ -213,7 +227,7 @@ class MessageController extends Controller
             </AdvanceColumn>
 
             <AdvanceColumn field="type"></AdvanceColumn>
-            
+
         </AdvanceTable>
     </MessagesTemplate>
 </template>
