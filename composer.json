@@ -3,7 +3,7 @@
     "description": "The Service that facilitates integration with PrimeVue tables by introducing easy pagination, filtering and sorting.",
     "type": "library",
     "license": "MIT",
-    "version": "0.0.16",
+    "version": "0.0.17",
     "autoload": {
         "psr-4": {
             "Karlos3098\\LaravelPrimevueTableService\\": "./src"
