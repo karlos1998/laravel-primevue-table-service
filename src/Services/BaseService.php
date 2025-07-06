@@ -462,6 +462,46 @@ abstract class BaseService
             // dd($sortPath, $order, $sql);
 
             $this->builder->orderByRaw($sql);
+        }
+        // Check if the sort path contains '.' (indicating a relation field)
+        elseif (str_contains($sortPath, '.')) {
+            // Extract the relation and column name
+            $pathData = explode('.', $sortPath);
+
+            if (count($pathData) === 2) {
+                // Simple relation: relation.column
+                $relation = $pathData[0];
+                $relationColumn = $pathData[1];
+
+                // Get the relation object to determine the correct foreign key
+                $relationObj = $this->builder->getModel()->{$relation}();
+                $foreignKey = $relationObj->getForeignKeyName();
+                $relatedTable = $relationObj->getRelated()->getTable();
+                $relatedKey = $relationObj->getOwnerKeyName();
+
+                // Use a subquery with a left join to sort by the relation column
+                $baseTable = $this->builder->getModel()->getTable();
+                $this->builder->select($baseTable.'.*')
+                    ->leftJoin($relatedTable, $baseTable.'.'.$foreignKey, '=', $relatedTable.'.'.$relatedKey)
+                    ->orderBy($relatedTable.'.'.$relationColumn, $order);
+            } elseif (count($pathData) > 2) {
+                // For more complex nested relations, we'll use a more flexible approach
+                // For now, we'll just use the first and last parts of the path
+                $relationColumn = array_pop($pathData);
+                $relation = $pathData[0];
+
+                // Get the relation object to determine the correct foreign key
+                $relationObj = $this->builder->getModel()->{$relation}();
+                $foreignKey = $relationObj->getForeignKeyName();
+                $relatedTable = $relationObj->getRelated()->getTable();
+                $relatedKey = $relationObj->getOwnerKeyName();
+
+                // Use a subquery with a left join to sort by the relation column
+                $baseTable = $this->builder->getModel()->getTable();
+                $this->builder->select($baseTable.'.*')
+                    ->leftJoin($relatedTable, $baseTable.'.'.$foreignKey, '=', $relatedTable.'.'.$relatedKey)
+                    ->orderBy($relatedTable.'.'.$relationColumn, $order);
+            }
         } else {
             // Regular column sorting
             $this->builder->orderBy($sortPath, $order);
@@ -523,5 +563,39 @@ abstract class BaseService
                 }
             });
         }
+    }
+
+    /**
+     * Get the last table name from a relation path
+     *
+     * @param string $path The relation path (e.g., 'relation1.relation2')
+     * @return string The table name of the last relation
+     */
+    private function getLastTableFromPath(string $path): string
+    {
+        $pathData = explode('.', $path);
+        return end($pathData);
+    }
+
+    /**
+     * Build a join condition for a relation path
+     *
+     * @param string $path The relation path (e.g., 'relation1.relation2')
+     * @param string $baseTable The base table name
+     * @return string The join condition
+     */
+    private function buildJoinConditionForPath(string $path, string $baseTable): string
+    {
+        $pathData = explode('.', $path);
+        $lastRelation = end($pathData);
+
+        // For simple relations, we can use a direct join condition
+        if (count($pathData) === 1) {
+            return "{$lastRelation}.id = {$baseTable}.{$lastRelation}_id";
+        }
+
+        // For nested relations, we need to build a more complex condition
+        // This is a simplified approach and might need to be adjusted based on your specific schema
+        return "{$lastRelation}.id IN (SELECT id FROM {$lastRelation} WHERE {$lastRelation}.id = {$baseTable}.{$lastRelation}_id)";
     }
 }
