@@ -458,7 +458,7 @@ export class TableService<DataType> {
 
         // Update the URL without causing a page reload
         const newUrl = `${url.pathname}?${searchParams.toString()}`;
-        window.history.replaceState({}, '', newUrl);
+        window.history.pushState({}, '', newUrl);
     }
 
 }
