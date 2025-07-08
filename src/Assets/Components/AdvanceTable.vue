@@ -97,6 +97,10 @@ provide('service', service.value)
                 <slot name="footer"></slot>
             </template>
 
+            <template #expansion>
+                <slot name="expansion"></slot>
+            </template>
+
             <slot />
 
         </OwnDataTable>
